@@ -10,7 +10,7 @@ import { MapPin, Check, X, RefreshCw } from 'lucide-react'
 // CSS do Leaflet (seguro importar em Client Component)
 import 'leaflet/dist/leaflet.css'
 
-import type { Map as LeafletMap } from 'leaflet'
+import type { Map as LeafletMap, LeafletMouseEvent } from 'leaflet'
 
 // Importar o mapa dinamicamente para evitar problemas de SSR
 const MapContainer = dynamic(
@@ -135,7 +135,7 @@ export function LocationConfirmation({
                   setTimeout(() => { try { mapRef.current?.invalidateSize(); } catch {} }, 0)
                 }}
                 // Captura cliques no mapa para atualizar posição
-                onclick={(ev: any) => {
+                onClick={(ev: LeafletMouseEvent) => {
                   const { lat, lng } = ev.latlng
                   setPosition({ lat, lng })
                 }}
