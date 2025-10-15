@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -9,6 +9,8 @@ import { MapPin, Check, X, RefreshCw } from 'lucide-react'
 
 // CSS do Leaflet (seguro importar em Client Component)
 import 'leaflet/dist/leaflet.css'
+
+import type { Map as LeafletMap } from 'leaflet'
 
 // Importar o mapa dinamicamente para evitar problemas de SSR
 const MapContainer = dynamic(
@@ -47,6 +49,7 @@ export function LocationConfirmation({
   const [error, setError] = useState<string>('')
 
   const [position, setPosition] = useState<{ lat: number; lng: number }>({ lat: location.lat, lng: location.lng })
+  const mapRef = useRef<LeafletMap | null>(null)
 
   // Reposiciona quando as props mudarem
   useEffect(() => {
@@ -123,17 +126,18 @@ export function LocationConfirmation({
           <div className="h-64 w-full rounded-lg overflow-hidden border-2 border-gray-200 mb-4">
             {leafletReady && (
               <MapContainer
+                ref={mapRef as any}
                 center={[position.lat, position.lng]}
                 zoom={16}
                 style={{ height: '100%', width: '100%' }}
-                whenReady={(e) => {
-                  const map = (e.target as any)
+                whenReady={() => {
                   // Garante layout correto ao abrir modal
-                  setTimeout(() => { try { map.invalidateSize(); } catch {} }, 0)
-                  map.on('click', (ev: any) => {
-                    const { lat, lng } = ev.latlng
-                    setPosition({ lat, lng })
-                  })
+                  setTimeout(() => { try { mapRef.current?.invalidateSize(); } catch {} }, 0)
+                }}
+                // Captura cliques no mapa para atualizar posição
+                onclick={(ev: any) => {
+                  const { lat, lng } = ev.latlng
+                  setPosition({ lat, lng })
                 }}
               >
                 <TileLayer
