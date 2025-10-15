@@ -132,12 +132,12 @@ export function LocationConfirmation({
                 style={{ height: '100%', width: '100%' }}
                 whenReady={() => {
                   // Garante layout correto ao abrir modal
-                  setTimeout(() => { try { mapRef.current?.invalidateSize(); } catch {} }, 0)
-                }}
-                // Captura cliques no mapa para atualizar posição
-                onClick={(ev: LeafletMouseEvent) => {
-                  const { lat, lng } = ev.latlng
-                  setPosition({ lat, lng })
+                  setTimeout(() => { try { mapRef.current?.invalidateSize() } catch {} }, 0)
+                  // Captura cliques no mapa para atualizar posição
+                  mapRef.current?.on('click', (ev: LeafletMouseEvent) => {
+                    const { lat, lng } = ev.latlng
+                    setPosition({ lat, lng })
+                  })
                 }}
               >
                 <TileLayer
