@@ -126,11 +126,12 @@ export function LocationConfirmation({
                 center={[position.lat, position.lng]}
                 zoom={16}
                 style={{ height: '100%', width: '100%' }}
-                whenCreated={(map) => {
+                whenReady={(e) => {
+                  const map = (e.target as any)
                   // Garante layout correto ao abrir modal
                   setTimeout(() => { try { map.invalidateSize(); } catch {} }, 0)
-                  map.on('click', (e: any) => {
-                    const { lat, lng } = e.latlng
+                  map.on('click', (ev: any) => {
+                    const { lat, lng } = ev.latlng
                     setPosition({ lat, lng })
                   })
                 }}
