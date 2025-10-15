@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1f2937; /* Texto mais escuro para melhor contraste */
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #1f2937;
+  --muted: #f9fafb;
+  --muted-foreground: #4b5563; /* Texto secundário mais escuro */
+  --accent: #dbeafe;
+  --accent-foreground: #1e40af;
+  --border: #d1d5db;
+  --input: #f9fafb;
+  --ring: #2563eb;
+  /* Cores de Card explícitas para evitar texto branco em fundo claro */
+  --card: #ffffff;
+  --card-foreground: #1f2937;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  /* Mapear tokens de Card */
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #f9fafb;
+    --muted-foreground: #d1d5db;
+    /* Em dark, texto claro sobre card escuro */
+    --card: #0f172a; /* slate-900 */
+    --card-foreground: #f9fafb;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Classes utilitárias para melhor contraste */
+.text-improved {
+  color: #1f2937 !important;
+}
+
+.text-muted-improved {
+  color: #4b5563 !important;
+}
+
+.text-light-improved {
+  color: #6b7280 !important;
+}
+
+/* Melhorar contraste dos placeholders */
+::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}
+
+
+/* Melhorar legibilidade de selects nativos (Windows/Chrome) */
+select {
+  color: #111827; /* gray-900 */
+  background-color: #ffffff;
+}
+select option {
+  color: #111827;
+}
+select option[disabled] {
+  color: #6b7280; /* gray-500 para placeholder */
+}
