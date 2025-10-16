@@ -11,6 +11,8 @@ import { Camera, Upload, MapPin, Loader2, Navigation } from 'lucide-react'
 import { LocationConfirmation } from '@/components/map/location-confirmation'
 import { DemandaForm } from '@/lib/types'
 import Image from 'next/image'
+import { useAuth } from '@/components/auth/auth-provider'
+import { useRouter } from 'next/navigation'
 
 const demandaSchema = z.object({
   categoria: z.string().min(1, 'Selecione uma categoria'),
@@ -40,6 +42,9 @@ export function NovaDemandaForm({ onSubmit, categorias }: NovaDemandaFormProps) 
   const [bairro, setBairro] = useState<string>('')
   const [showLocationConfirmation, setShowLocationConfirmation] = useState(false)
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null)
+
+  const { user } = useAuth()
+  const router = useRouter()
 
   const galleryInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
@@ -135,6 +140,13 @@ export function NovaDemandaForm({ onSubmit, categorias }: NovaDemandaFormProps) 
       return
     }
 
+    // Verifica autenticação antes de enviar
+    if (!user) {
+      alert('Você precisa estar logado para enviar uma demanda. Faça login para continuar.')
+      router.push('/login')
+      return
+    }
+
     setIsSubmitting(true)
     try {
       await onSubmit({
@@ -147,7 +159,12 @@ export function NovaDemandaForm({ onSubmit, categorias }: NovaDemandaFormProps) 
       })
     } catch (error) {
       console.error('Erro ao enviar demanda:', error)
-      alert('Erro ao enviar demanda. Tente novamente.')
+      if (error instanceof Error && error.message === 'AUTH_REQUIRED') {
+        alert('Você precisa estar logado para enviar uma demanda. Faça login para continuar.')
+        router.push('/login')
+      } else {
+        alert('Erro ao enviar demanda. Tente novamente.')
+      }
     } finally {
       setIsSubmitting(false)
     }

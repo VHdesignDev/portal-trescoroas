@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   // Ignora falhas de ESLint no build de produção (Vercel)
@@ -6,6 +7,8 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Evita que o Next infira a raiz errada quando há múltiplos lockfiles no repo
+  outputFileTracingRoot: path.join(__dirname, ".."),
   images: {
     // Permitir imagens do Storage do Supabase
     remotePatterns: [
