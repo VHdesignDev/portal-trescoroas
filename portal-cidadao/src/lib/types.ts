@@ -84,3 +84,10 @@ export interface DashboardStats {
     resolvidas: number
   }>
 }
+
+export interface BasicUser {
+  id: string
+  email: string
+  created_at: string
+  nome?: string | null
+}
