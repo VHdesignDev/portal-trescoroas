@@ -23,19 +23,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
+    let mounted = true
+    // Failsafe: se o Supabase estiver lento/fora, não travar a UI indefinidamente
+    const loadingFailsafe = setTimeout(() => {
+      if (mounted) setIsLoading(false)
+    }, 3000)
+
     // Verificar usuário atual
     authService.getCurrentUser().then((currentUser) => {
+      if (!mounted) return
       setUser(currentUser)
+      setIsLoading(false)
+    }).catch(() => {
+      if (!mounted) return
       setIsLoading(false)
     })
 
     // Escutar mudanças de autenticação
     const { data: { subscription } } = authService.onAuthStateChange((user) => {
+      if (!mounted) return
       setUser(user)
       setIsLoading(false)
     })
 
     return () => {
+      mounted = false
+      clearTimeout(loadingFailsafe)
       subscription.unsubscribe()
     }
   }, [])

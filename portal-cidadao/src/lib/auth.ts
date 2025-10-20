@@ -7,6 +7,32 @@ export interface User {
   name?: string | null
 }
 
+// Helper: aplica timeout a uma promise e retorna fallback se exceder
+async function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return new Promise<T>((resolve) => {
+    let settled = false
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true
+        resolve(fallback)
+      }
+    }, ms)
+    p.then((v) => {
+      if (!settled) {
+        settled = true
+        clearTimeout(timer)
+        resolve(v)
+      }
+    }).catch(() => {
+      if (!settled) {
+        settled = true
+        clearTimeout(timer)
+        resolve(fallback)
+      }
+    })
+  })
+}
+
 export class AuthService {
   private supabase = createSupabaseClient()
 
@@ -44,65 +70,91 @@ export class AuthService {
   }
 
   async getCurrentUser(): Promise<User | null> {
-    const { data: { user } } = await this.supabase.auth.getUser()
-
-    if (!user) return null
-
-    // Buscar nome no perfil (se existir)
-    let displayName: string | null = null
-    try {
-      const { data: profile } = await this.supabase
-        .from('user_profiles')
-        .select('nome')
-        .eq('id', user.id)
-        .maybeSingle()
-      displayName = profile?.nome ?? null
-    } catch {}
-
-    // Checar papéis no banco: dev tem precedência sobre admin
-    let isDev = false
-    let isAdmin = false
-    // 1) Tenta via RPC (se existir)
-    try {
-      const { data: devResult } = await this.supabase.rpc('is_dev')
-      isDev = Boolean(devResult)
-    } catch {}
-    try {
-      const { data: adminResult } = await this.supabase.rpc('is_admin')
-      isAdmin = Boolean(adminResult)
-    } catch {}
-    // 2) Fallback: consulta tabelas diretamente se RPCs não existirem/forem negadas
-    if (!isDev) {
-      try {
-        const { data, error } = await this.supabase
-          .from('dev_users')
-          .select('user_id')
-          .eq('user_id', user.id)
-          .maybeSingle()
-        if (!error && data) isDev = true
-      } catch {}
+    // 1) Primeiro tenta sessão local (não depende de rede)
+    const { data: sessionData } = await this.supabase.auth.getSession()
+    const sessionUser = sessionData?.session?.user
+    if (!sessionUser) {
+      return null
     }
-    if (!isDev && !isAdmin) { // só checa admin se não for dev
-      try {
-        const { data, error } = await this.supabase
-          .from('admin_users')
-          .select('user_id')
-          .eq('user_id', user.id)
+
+    const uid = sessionUser.id
+    const email = sessionUser.email!
+
+    // 2) Buscar nome de perfil e papéis em paralelo, com timeout curto
+    const profileP = withTimeout(
+      (async () =>
+        await this.supabase
+          .from('user_profiles')
+          .select('nome')
+          .eq('id', uid)
           .maybeSingle()
-        if (!error && data) isAdmin = true
-      } catch {}
+      )(),
+      1500,
+      { data: null } as any
+    )
+
+    const devRpcP = withTimeout(
+      (async () => await this.supabase.rpc('is_dev'))(),
+      1500,
+      { data: null } as any
+    )
+    const adminRpcP = withTimeout(
+      (async () => await this.supabase.rpc('is_admin'))(),
+      1500,
+      { data: null } as any
+    )
+
+    const [{ data: profile }, { data: devResult }, { data: adminResult }] = await Promise.all([
+      profileP,
+      devRpcP,
+      adminRpcP,
+    ])
+
+    let displayName: string | null = (profile as any)?.nome ?? null
+
+    let isDev = Boolean(devResult)
+    let isAdmin = Boolean(adminResult)
+
+    // 3) Fallback: se não for dev nem admin, tenta tabelas diretamente (também com timeout e em paralelo)
+    if (!isDev && !isAdmin) {
+      const devTblP = withTimeout(
+        (async () =>
+          await this.supabase
+            .from('dev_users')
+            .select('user_id')
+            .eq('user_id', uid)
+            .maybeSingle()
+        )(),
+        800,
+        { data: null } as any
+      )
+      const admTblP = withTimeout(
+        (async () =>
+          await this.supabase
+            .from('admin_users')
+            .select('user_id')
+            .eq('user_id', uid)
+            .maybeSingle()
+        )(),
+        800,
+        { data: null } as any
+      )
+
+      const [{ data: d1 }, { data: a1 }] = await Promise.all([devTblP, admTblP])
+      isDev = Boolean(d1)
+      isAdmin = isDev ? false : Boolean(a1)
     }
 
     return {
-      id: user.id,
-      email: user.email!,
+      id: uid,
+      email,
       role: isDev ? 'dev' : (isAdmin ? 'admin' : 'user'),
       name: displayName,
     }
   }
 
   onAuthStateChange(callback: (user: User | null) => void) {
-    return this.supabase.auth.onAuthStateChange(async (event, session) => {
+    return this.supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const user = await this.getCurrentUser()
         callback(user)
