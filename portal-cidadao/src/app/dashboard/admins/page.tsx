@@ -98,8 +98,8 @@ function AdminManagementPanel() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <Shield className="w-5 h-5 text-blue-600" /> Gestão de Admins
+        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+          <Shield className="w-5 h-5 text-blue-400" /> Gestão de Admins
         </h2>
         <Button variant="outline" onClick={loadAdmins} disabled={loadingAdmins}>
           <RefreshCcw className="w-4 h-4 mr-2" /> Atualizar
@@ -111,18 +111,18 @@ function AdminManagementPanel() {
       )}
 
       <Card className="p-6">
-        <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
           <Users className="w-4 h-4" /> Administradores atuais
         </h3>
         {admins.length === 0 ? (
-          <p className="text-gray-600">Nenhum administrador cadastrado ainda.</p>
+          <p className="text-gray-300">Nenhum administrador cadastrado ainda.</p>
         ) : (
           <ul className="divide-y">
             {admins.map((a) => (
               <li key={a.id} className="py-3 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-900">{a.nome || a.email}</p>
-                  {a.nome && <p className="text-sm text-gray-600">{a.email}</p>}
+                  <p className="font-medium text-white">{a.nome || a.email}</p>
+                  {a.nome && <p className="text-sm text-gray-300">{a.email}</p>}
                 </div>
                 <Button variant="destructive" size="sm" onClick={() => handleRemoveAdmin(a.email)}>
                   <Trash2 className="w-4 h-4 mr-2" /> Revogar
@@ -134,7 +134,7 @@ function AdminManagementPanel() {
       </Card>
 
       <Card className="p-6">
-        <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
           <Users className="w-4 h-4" /> Buscar usuários
         </h3>
         <div className="flex gap-2 mb-4">
@@ -146,8 +146,8 @@ function AdminManagementPanel() {
             {results.map((u) => (
               <li key={u.id} className="py-3 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-900">{u.nome || u.email}</p>
-                  {u.nome && <p className="text-sm text-gray-600">{u.email}</p>}
+                  <p className="font-medium text-white">{u.nome || u.email}</p>
+                  {u.nome && <p className="text-sm text-gray-300">{u.email}</p>}
                 </div>
                 {adminSet.has(u.email.toLowerCase()) ? (
                   <Button variant="outline" size="sm" onClick={() => handleRemoveAdmin(u.email)}>
@@ -181,8 +181,8 @@ export default function AdminsPage() {
     <Layout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Shield className="w-5 h-5 text-blue-600" />
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Shield className="w-5 h-5 text-blue-400" />
             Administração de Usuários
           </h1>
         </div>
@@ -190,15 +190,15 @@ export default function AdminsPage() {
         <AdminManagementPanel />
 
         <Card className="p-6">
-          <h2 className="font-semibold text-gray-900 mb-3">Como habilitar esta área</h2>
-          <p className="text-gray-700 mb-3">Caso veja erros ou a lista vazia, é provável que as permissões ainda não estejam configuradas. Siga os passos abaixo no SQL Editor do Supabase:</p>
-          <ol className="list-decimal list-inside text-gray-700 space-y-1">
+          <h2 className="font-semibold text-white mb-3">Como habilitar esta área</h2>
+          <p className="text-gray-300 mb-3">Caso veja erros ou a lista vazia, é provável que as permissões ainda não estejam configuradas. Siga os passos abaixo no SQL Editor do Supabase:</p>
+          <ol className="list-decimal list-inside text-gray-300 space-y-1">
             <li>Execute <code className="font-mono text-sm">supabase-scripts/07_admin_roles.sql</code></li>
             <li>Execute <code className="font-mono text-sm">supabase-scripts/07b_dev_roles.sql</code></li>
             <li>
               Torne seu usuário um dev com:
               <div className="relative mt-2">
-                <pre className="bg-gray-50 p-2 rounded text-sm overflow-auto">{`INSERT INTO public.dev_users(user_id)
+                <pre className="bg-slate-800 text-slate-100 border border-slate-700 p-2 rounded text-sm overflow-auto">{`INSERT INTO public.dev_users(user_id)
 SELECT id FROM auth.users WHERE email = 'seu-email@dominio.com';`}</pre>
               </div>
             </li>
