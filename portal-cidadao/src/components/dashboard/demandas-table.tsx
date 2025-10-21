@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Search, Eye, CheckCircle, Clock, AlertCircle } from 'lucide-react'
+import { Search, Eye, CheckCircle, Clock, AlertCircle, Trash2 } from 'lucide-react'
 import { Demanda } from '@/lib/types'
 import { formatDate, getStatusColor, getStatusText } from '@/lib/utils'
 
@@ -13,9 +13,11 @@ interface DemandasTableProps {
   demandas: Demanda[]
   onStatusChange?: (demandaId: string, novoStatus: 'aberta' | 'em_andamento' | 'resolvida') => void
   onViewDetails?: (demanda: Demanda) => void
+  onDelete?: (demandaId: string) => void
+  canDelete?: boolean
 }
 
-export function DemandasTable({ demandas, onStatusChange, onViewDetails }: DemandasTableProps) {
+export function DemandasTable({ demandas, onStatusChange, onViewDetails, onDelete, canDelete }: DemandasTableProps) {
   const [filtro, setFiltro] = useState('')
   const [statusFiltro, setStatusFiltro] = useState<string>('todos')
 
@@ -140,7 +142,7 @@ export function DemandasTable({ demandas, onStatusChange, onViewDetails }: Deman
                               <Clock className="w-4 h-4" />
                             </Button>
                           )}
-                          
+
                           <Button
                             variant="outline"
                             size="sm"
@@ -150,6 +152,16 @@ export function DemandasTable({ demandas, onStatusChange, onViewDetails }: Deman
                             <CheckCircle className="w-4 h-4" />
                           </Button>
                         </div>
+                      )}
+                      {canDelete && onDelete && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => onDelete(demanda.id)}
+                          title="Excluir demanda"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       )}
                     </div>
                   </td>

@@ -52,8 +52,8 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
         <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4">
           <Lock className="w-6 h-6 text-white" />
         </div>
-        <CardTitle className="text-2xl font-bold">Login Administrativo</CardTitle>
-        <p className="text-gray-600">Acesse o painel de controle</p>
+        <CardTitle className="text-2xl font-bold">Entrar</CardTitle>
+        <p className="text-gray-600">Acesse sua conta</p>
       </CardHeader>
       
       <CardContent>
@@ -108,12 +108,7 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
           </Button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Para demonstração, use:</p>
-          <p className="font-mono text-xs mt-1">
-            admin@prefeitura.gov.br / 123456
-          </p>
-        </div>
+
       </CardContent>
     </Card>
   )

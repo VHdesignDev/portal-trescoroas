@@ -30,7 +30,7 @@ export default function DashboardPage() {
         apiService.getDashboardStats(),
         apiService.getDemandas({ limit: 100 })
       ])
-      
+
       setStats(statsData)
       setDemandas(demandasData)
     } catch (error) {
@@ -43,23 +43,37 @@ export default function DashboardPage() {
   const handleStatusChange = async (demandaId: string, novoStatus: 'aberta' | 'em_andamento' | 'resolvida') => {
     try {
       await apiService.updateDemandaStatus(demandaId, novoStatus)
-      
+
       // Atualizar a demanda na lista local
-      setDemandas(prev => prev.map(demanda => 
-        demanda.id === demandaId 
+      setDemandas(prev => prev.map(demanda =>
+        demanda.id === demandaId
           ? { ...demanda, status: novoStatus, data_resolucao: novoStatus === 'resolvida' ? new Date().toISOString() : demanda.data_resolucao }
           : demanda
       ))
-      
+
       // Recarregar estatísticas
       const newStats = await apiService.getDashboardStats()
       setStats(newStats)
-      
+
     } catch (error) {
       console.error('Erro ao atualizar status da demanda:', error)
       alert('Erro ao atualizar status da demanda')
     }
   }
+  const handleDelete = async (demandaId: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta demanda? Esta ação não pode ser desfeita.')) return
+    try {
+      await apiService.deleteDemanda(demandaId)
+      setDemandas(prev => prev.filter(d => d.id !== demandaId))
+      // Recarregar estatísticas após exclusão
+      const newStats = await apiService.getDashboardStats()
+      setStats(newStats)
+    } catch (error) {
+      console.error('Erro ao excluir demanda:', error)
+      alert('Erro ao excluir demanda. Tente novamente.')
+    }
+  }
+
 
   // Verificar se o usuário é admin
   if (!user) {
@@ -125,9 +139,11 @@ export default function DashboardPage() {
         {stats && <Charts stats={stats} />}
 
         {/* Tabela de Demandas */}
-        <DemandasTable 
+        <DemandasTable
           demandas={demandas}
           onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
+          canDelete={true}
         />
       </div>
     </Layout>

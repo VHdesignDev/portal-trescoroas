@@ -17,8 +17,6 @@ export function Header() {
     { name: 'Reportar Problema', href: '/nova-demanda', icon: Plus, public: true },
     { name: 'Acompanhar Demandas', href: '/acompanhar', icon: Eye, public: true },
     { name: 'Demandas', href: '/demandas', icon: BarChart3, admin: true, dev: true },
-    // Aba exclusiva de devs para gerenciar admins/devs
-    { name: 'Administração', href: '/dashboard/admins', icon: Users, dev: true },
   ] as Array<{ name: string; href: string; icon: any; public?: boolean; admin?: boolean; dev?: boolean }>
 
   const filteredNavigation = navigation.filter(item =>
