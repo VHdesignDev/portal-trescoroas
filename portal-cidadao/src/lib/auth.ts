@@ -1,4 +1,6 @@
-import { createSupabaseClient } from './supabase'
+import { getSupabaseBrowserClient } from './supabase'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
+
 
 export interface User {
   id: string
@@ -34,7 +36,7 @@ async function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T
 }
 
 export class AuthService {
-  private supabase = createSupabaseClient()
+  private supabase = getSupabaseBrowserClient()
 
   async signIn(email: string, password: string) {
     const { data, error } = await this.supabase.auth.signInWithPassword({
@@ -154,7 +156,7 @@ export class AuthService {
   }
 
   onAuthStateChange(callback: (user: User | null) => void) {
-    return this.supabase.auth.onAuthStateChange(async (_event, session) => {
+    return this.supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, session: Session | null) => {
       if (session?.user) {
         const user = await this.getCurrentUser()
         callback(user)

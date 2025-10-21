@@ -1,19 +1,16 @@
-import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient } from '@supabase/ssr'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-export function createSupabaseClient() {
-  // Explicitly persist session and auto-refresh tokens in the browser
-  return createBrowserClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-  })
+let browserClient: ReturnType<typeof createBrowserClient> | null = null
+export function getSupabaseBrowserClient() {
+  if (!browserClient) {
+    browserClient = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: true, autoRefreshToken: true },
+    })
+  }
+  return browserClient
 }
 
 export type Database = {
