@@ -64,6 +64,7 @@ DROP POLICY IF EXISTS "Usuários podem atualizar suas próprias demandas" ON pub
 DROP POLICY IF EXISTS "Admins/Devs podem atualizar quaisquer demandas" ON public.demandas;
 
 -- SELECT: dono ou admin/dev
+DROP POLICY IF EXISTS "Demandas: selecionar (dono ou admin/dev)" ON public.demandas;
 CREATE POLICY "Demandas: selecionar (dono ou admin/dev)" ON public.demandas
   FOR SELECT USING (
     user_id = (SELECT auth.uid())
@@ -72,6 +73,7 @@ CREATE POLICY "Demandas: selecionar (dono ou admin/dev)" ON public.demandas
   );
 
 -- UPDATE: dono ou admin/dev
+DROP POLICY IF EXISTS "Demandas: atualizar (dono ou admin/dev)" ON public.demandas;
 CREATE POLICY "Demandas: atualizar (dono ou admin/dev)" ON public.demandas
   FOR UPDATE USING (
     user_id = (SELECT auth.uid())
