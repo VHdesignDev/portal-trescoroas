@@ -52,15 +52,31 @@ export class AuthService {
   }
 
   async signUp(email: string, password: string) {
+    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm`
     const { data, error } = await this.supabase.auth.signUp({
       email,
       password,
+      options: { emailRedirectTo: redirectTo },
     })
 
     if (error) {
       throw new Error(error.message)
     }
 
+    return data
+  }
+
+  // Reenvia o e-mail de confirmação de cadastro
+  async resendConfirmation(email: string) {
+    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm`
+    const { data, error } = await this.supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: redirectTo },
+    })
+    if (error) {
+      throw new Error(error.message)
+    }
     return data
   }
 

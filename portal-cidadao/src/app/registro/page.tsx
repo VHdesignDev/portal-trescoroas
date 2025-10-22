@@ -36,6 +36,7 @@ export default function RegistroPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegistroFormData>({
     resolver: zodResolver(registroSchema),
@@ -68,6 +69,28 @@ export default function RegistroPage() {
       alert(message)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const emailValue = watch('email')
+  const [isResending, setIsResending] = useState(false)
+  const [resendMsg, setResendMsg] = useState<string | null>(null)
+
+  const handleResend = async () => {
+    if (!emailValue) {
+      setResendMsg('Preencha o campo de e-mail acima para reenviar a confirmação.')
+      return
+    }
+    try {
+      setIsResending(true)
+      setResendMsg(null)
+      await authService.resendConfirmation(emailValue)
+      setResendMsg('Reenviamos o e-mail de confirmação. Confira sua caixa de entrada e spam.')
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Não foi possível reenviar agora. Tente novamente mais tarde.'
+      setResendMsg(msg)
+    } finally {
+      setIsResending(false)
     }
   }
 
@@ -251,6 +274,20 @@ export default function RegistroPage() {
                   'Criar Conta'
                 )}
               </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleResend}
+                disabled={isResending}
+              >
+                {isResending ? 'Reenviando...' : 'Reenviar e-mail de confirmação'}
+              </Button>
+
+              {resendMsg && (
+                <p className="text-xs text-gray-600 text-center">{resendMsg}</p>
+              )}
             </form>
           </CardContent>
         </Card>
