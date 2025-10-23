@@ -15,7 +15,11 @@ import { User, Mail, Phone, MapPin, Home, Key, ArrowLeft } from 'lucide-react'
 
 const registroSchema = z.object({
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  password: z
+    .string()
+    .min(8, 'Senha deve ter pelo menos 8 caracteres')
+    .regex(/[A-Za-z]/, 'A senha deve conter pelo menos uma letra')
+    .regex(/[0-9]/, 'A senha deve conter pelo menos um número'),
   confirmPassword: z.string(),
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   telefone: z.string().optional(),
@@ -147,12 +151,17 @@ export default function RegistroPage() {
                   <Input
                     {...register('password')}
                     type="password"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mínimo 8 caracteres, letras e números"
                     className="pl-10"
                   />
                 </div>
                 {errors.password && (
                   <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>
+                )}
+                {!errors.password && (
+                  <p className="text-xs text-gray-600 mt-1">
+                    Requisitos: mínimo 8 caracteres, com pelo menos 1 letra e 1 número.
+                  </p>
                 )}
               </div>
 
