@@ -1,0 +1,37 @@
+-- ------------------------------------------------------------
+-- 12_auth_password_recovery.sql
+-- Portal Cidadão — Fluxo de recuperação de senha (Supabase)
+-- ------------------------------------------------------------
+-- Este script serve como guia operacional para configurar o fluxo
+-- de "Esqueci minha senha" diretamente no Supabase Studio.
+-- Não há alterações de schema necessárias no Postgres.
+--
+-- Passos no Supabase Studio:
+-- 1) Authentication → URL Configuration
+--    - Site URL (Production): https://SEU-DOMINIO
+--    - Additional Redirect URLs: https://SEU-DOMINIO/auth/update-password
+--
+-- 2) Authentication → Email Templates → Reset Password
+--    - Trocar o template para HTML customizado
+--    - Colar o conteúdo do arquivo:
+--        portal-cidadao/supabase-templates/reset-password.html
+--    - Garanta que o botão use {{ .ConfirmationURL }}
+--
+-- 3) Authentication → Providers → Email
+--    - Confirme que o envio de e-mails está habilitado
+--
+-- 4) Teste (Studio → Authentication → Users)
+--    - Use "Send password reset" em um usuário de teste, ou
+--    - Acesse a página pública /auth/reset-password e solicite o link
+--
+-- Observações técnicas:
+-- - O cliente chama supabase.auth.resetPasswordForEmail(email, { redirectTo })
+--   com redirectTo = https://SEU-DOMINIO/auth/update-password
+-- - Ao abrir o link recebido no e-mail, o Supabase aplica sessão de recovery
+--   no browser e então supabase.auth.updateUser({ password }) conclui a troca
+-- - A política de senha mínima (8+ com letra e número) é aplicada no frontend
+--   e pode ser alinhada com a política do projeto em Authentication → Passwords
+--
+-- Nada a executar aqui — este arquivo é um runbook.
+-- ------------------------------------------------------------
+
