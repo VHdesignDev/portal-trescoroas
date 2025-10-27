@@ -6,11 +6,26 @@ import Link from 'next/link'
 import { Layout } from '@/components/layout/layout'
 import { LoginForm } from '@/components/auth/login-form'
 import { useAuth } from '@/components/auth/auth-provider'
+import { getSupabaseBrowserClient } from '@/lib/supabase'
+import type { AuthChangeEvent } from '@supabase/supabase-js'
 
 export default function LoginPage() {
   const router = useRouter()
   const { user, isLoading } = useAuth()
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Se chegar via link de recuperação, enviar para a página de redefinição
+    const supabase = getSupabaseBrowserClient()
+    const { data: sub } = supabase.auth.onAuthStateChange((event: AuthChangeEvent) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        router.replace('/auth/update-password')
+      }
+    })
+    return () => {
+      sub.subscription.unsubscribe()
+    }
+  }, [router])
 
   useEffect(() => {
     // Se o usuário já está logado, redirecionar para a página inicial
