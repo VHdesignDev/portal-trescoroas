@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, Lock, Mail, MailCheck } from 'lucide-react'
 import { authService } from '@/lib/auth'
+import Link from 'next/link'
+
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -114,6 +116,13 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
               <p className="text-sm text-red-600">{errors.password.message}</p>
             )}
           </div>
+
+          <div className="flex justify-end">
+            <Link href="/auth/reset-password" className="text-xs text-blue-600 hover:text-blue-700">
+              Esqueci minha senha
+            </Link>
+          </div>
+
 
           <Button
             type="submit"

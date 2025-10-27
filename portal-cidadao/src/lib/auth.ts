@@ -80,6 +80,25 @@ export class AuthService {
     return data
   }
 
+  // Inicia fluxo de recuperação de senha (envia e-mail com link)
+  async requestPasswordReset(email: string) {
+    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/update-password`
+    const { data, error } = await this.supabase.auth.resetPasswordForEmail(email, { redirectTo })
+    if (error) {
+      throw new Error(error.message)
+    }
+    return data
+  }
+
+  // Conclui a recuperação: atualiza a senha do usuário (requer sessão de recovery ativa)
+  async updatePassword(newPassword: string) {
+    const { data, error } = await this.supabase.auth.updateUser({ password: newPassword })
+    if (error) {
+      throw new Error(error.message)
+    }
+    return data
+  }
+
   async signOut() {
     const { error } = await this.supabase.auth.signOut()
     if (error) {
