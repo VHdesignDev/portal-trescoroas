@@ -82,12 +82,34 @@ export class AuthService {
 
   // Inicia fluxo de recuperação de senha (envia e-mail com link)
   async requestPasswordReset(email: string) {
-    // Usa exatamente a origem atual no browser (para evitar divergência www vs sem-www)
+    // Monta o redirect para a página de atualização de senha
+    // Força domínio canônico em produção para evitar qualquer rejeição do Supabase
+    const PROD_CANONICAL = 'https://www.portal-trescoroas.com.br'
+
     const origin = typeof window !== 'undefined'
       ? window.location.origin
       : (process.env.NEXT_PUBLIC_APP_URL || '')
     const base = (origin || '').replace(/\/$/, '')
-    const redirectTo = `${base}/auth/update-password`
+
+    let redirectTo = `${base}/auth/update-password`
+
+    // Em produção, sempre usar o domínio canônico com /auth/update-password
+    try {
+      const isProdHost = typeof window !== 'undefined'
+        ? /(^|\.)portal-trescoroas\.com\.br$/.test(new URL(window.location.href).hostname)
+        : process.env.NODE_ENV === 'production'
+      if (isProdHost) {
+        redirectTo = `${PROD_CANONICAL}/auth/update-password`
+      }
+    } catch (_e) {
+      // Fallback seguro em qualquer erro de URL
+      if (process.env.NODE_ENV === 'production') {
+        redirectTo = `${PROD_CANONICAL}/auth/update-password`
+      }
+    }
+
+    // Log leve p/ diagnóstico (apenas console do navegador)
+    try { console.log('[auth] resetPassword redirectTo ->', redirectTo) } catch {}
 
     const { data, error } = await this.supabase.auth.resetPasswordForEmail(email, { redirectTo })
     if (error) {
