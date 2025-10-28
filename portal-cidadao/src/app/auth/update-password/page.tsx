@@ -35,10 +35,50 @@ export default function UpdatePasswordPage() {
   const [isReady, setIsReady] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [attempting, setAttempting] = useState(false)
+
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
+  const attemptRecoveryFromUrl = async () => {
+    if (typeof window === 'undefined') return
+    setAttempting(true)
+    try {
+      const supabase = getSupabaseBrowserClient()
+      const search = new URLSearchParams(window.location.search)
+      const code = search.get('code')
+      const token_hash = search.get('token_hash')
+      const token = search.get('token')
+      if (code) {
+        await supabase.auth.exchangeCodeForSession({ code })
+      } else if (token_hash) {
+        await supabase.auth.verifyOtp({ type: 'recovery', token_hash })
+      } else if (token) {
+        await supabase.auth.verifyOtp({ type: 'recovery', token })
+      }
+
+      const hash = window.location.hash || ''
+      if (hash) {
+        try {
+          const qs = new URLSearchParams(hash.replace(/^#/, ''))
+          const access_token = qs.get('access_token')
+          const refresh_token = qs.get('refresh_token')
+          if (access_token && refresh_token) {
+            await supabase.auth.setSession({ access_token, refresh_token })
+          }
+        } catch {}
+      }
+
+      const { data }: { data: { session: Session | null } } = await supabase.auth.getSession()
+      setIsReady(!!data.session)
+    } catch (e) {
+      try { console.warn('[auth/update-password] attemptRecoveryFromUrl error', e) } catch {}
+    } finally {
+      setAttempting(false)
+    }
+  }
+
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient()
@@ -53,28 +93,7 @@ export default function UpdatePasswordPage() {
   // - PKCE (?code=...)
   // - Otp por e-mail com token_hash (?token_hash=...) via verifyOtp(type: 'recovery')
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const search = new URLSearchParams(window.location.search)
-    const code = search.get('code')
-    const token_hash = search.get('token_hash')
-    if (!code && !token_hash) return
-
-    const supabase = getSupabaseBrowserClient()
-
-    const run = async () => {
-      try {
-        if (code) {
-          await supabase.auth.exchangeCodeForSession({ code })
-        } else if (token_hash) {
-          await supabase.auth.verifyOtp({ type: 'recovery', token_hash })
-        }
-        const { data }: { data: { session: Session | null } } = await supabase.auth.getSession()
-        setIsReady(!!data.session)
-      } catch {
-        // silencioso
-      }
-    }
-    void run()
+    void attemptRecoveryFromUrl()
   }, [])
 
 
@@ -127,7 +146,25 @@ export default function UpdatePasswordPage() {
             {!isReady ? (
               <div className="text-center py-6 text-gray-700">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                Preparando sua sessão
+                Preparando sua sessão...
+                <div className="mt-3">
+                  <Button onClick={attemptRecoveryFromUrl} disabled={attempting} variant="outline">
+                    {attempting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Tentando...
+                      </>
+                    ) : (
+                      'Tentar novamente'
+                    )}
+                  </Button>
+                </div>
+                <div className="mt-2 text-sm">
+                  <Link href="/auth/reset-password" className="text-blue-600 hover:text-blue-700">Solicitar novo e-mail</Link>
+                </div>
+                {message && (
+                  <p className="text-sm text-red-600 mt-2">{message}</p>
+                )}
               </div>
             ) : (
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
