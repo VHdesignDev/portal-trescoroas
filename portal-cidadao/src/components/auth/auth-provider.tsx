@@ -61,8 +61,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = getSupabaseBrowserClient()
     const { data: sub } = supabase.auth.onAuthStateChange((event: AuthChangeEvent) => {
       if (event === 'PASSWORD_RECOVERY') {
-        // Força ir para a tela de atualização de senha a partir de QUALQUER página
-        window.location.replace('/auth/update-password')
+        // Preserva o hash com os tokens (type=recovery, access_token, refresh_token)
+        const hash = typeof window !== 'undefined' ? window.location.hash : ''
+        const target = `/auth/update-password${hash || ''}`
+        window.location.replace(target)
       }
     })
     return () => {
@@ -75,7 +77,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === 'undefined') return
     const hash = window.location.hash || ''
     if (hash.includes('type=recovery')) {
-      window.location.replace('/auth/update-password')
+      // Encaminha preservando o hash para que o supabase-js aplique a sessão
+      window.location.replace(`/auth/update-password${hash}`)
     }
   }, [])
 
