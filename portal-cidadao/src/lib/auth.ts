@@ -82,7 +82,13 @@ export class AuthService {
 
   // Inicia fluxo de recuperação de senha (envia e-mail com link)
   async requestPasswordReset(email: string) {
-    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/update-password`
+    // Usa exatamente a origem atual no browser (para evitar divergência www vs sem-www)
+    const origin = typeof window !== 'undefined'
+      ? window.location.origin
+      : (process.env.NEXT_PUBLIC_APP_URL || '')
+    const base = (origin || '').replace(/\/$/, '')
+    const redirectTo = `${base}/auth/update-password`
+
     const { data, error } = await this.supabase.auth.resetPasswordForEmail(email, { redirectTo })
     if (error) {
       throw new Error(error.message)
