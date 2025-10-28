@@ -7,7 +7,12 @@ let browserClient: ReturnType<typeof createBrowserClient> | null = null
 export function getSupabaseBrowserClient() {
   if (!browserClient) {
     browserClient = createBrowserClient(supabaseUrl, supabaseAnonKey, {
-      auth: { persistSession: true, autoRefreshToken: true },
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        flowType: 'implicit',
+      },
     })
   }
   return browserClient
