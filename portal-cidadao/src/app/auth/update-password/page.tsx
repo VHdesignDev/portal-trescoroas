@@ -49,18 +49,32 @@ export default function UpdatePasswordPage() {
     }
   }, [])
 
-  // Suporte a PKCE: se vier com ?code=... (ou token_hash), trocar por sessão
+  // Suporte amplo a fluxos modernos do Supabase:
+  // - PKCE (?code=...)
+  // - Otp por e-mail com token_hash (?token_hash=...) via verifyOtp(type: 'recovery')
   useEffect(() => {
     if (typeof window === 'undefined') return
     const search = new URLSearchParams(window.location.search)
-    const code = search.get('code') || search.get('token') || search.get('token_hash')
-    if (code) {
-      const supabase = getSupabaseBrowserClient()
-      supabase.auth.exchangeCodeForSession({ code })
-        .then(() => supabase.auth.getSession())
-        .then(({ data }: { data: { session: Session | null } }) => setIsReady(!!data.session))
-        .catch(() => { /* silencioso */ })
+    const code = search.get('code')
+    const token_hash = search.get('token_hash')
+    if (!code && !token_hash) return
+
+    const supabase = getSupabaseBrowserClient()
+
+    const run = async () => {
+      try {
+        if (code) {
+          await supabase.auth.exchangeCodeForSession({ code })
+        } else if (token_hash) {
+          await supabase.auth.verifyOtp({ type: 'recovery', token_hash })
+        }
+        const { data }: { data: { session: Session | null } } = await supabase.auth.getSession()
+        setIsReady(!!data.session)
+      } catch {
+        // silencioso
+      }
     }
+    void run()
   }, [])
 
 
