@@ -82,7 +82,6 @@ export default function UpdatePasswordPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return
     const hash = window.location.hash || ''
-    if (!hash.includes('type=recovery')) return
     try {
       const qs = new URLSearchParams(hash.replace(/^#/, ''))
       const access_token = qs.get('access_token')
