@@ -72,11 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Fallback extra: se a URL carregar com hash de recovery, redireciona de imediato
+  // Fallback extra: apenas se NÃO estiver já em /auth/update-password
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const hash = window.location.hash || ''
-    if (hash.includes('type=recovery')) {
+    const { hash, pathname } = window.location
+    if (hash.includes('type=recovery') && pathname !== '/auth/update-password') {
       // Encaminha preservando o hash para que o supabase-js aplique a sessão
       window.location.replace(`/auth/update-password${hash}`)
     }
