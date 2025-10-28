@@ -61,10 +61,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = getSupabaseBrowserClient()
     const { data: sub } = supabase.auth.onAuthStateChange((event: AuthChangeEvent) => {
       if (event === 'PASSWORD_RECOVERY') {
-        // Preserva o hash com os tokens (type=recovery, access_token, refresh_token)
-        const hash = typeof window !== 'undefined' ? window.location.hash : ''
-        const target = `/auth/update-password${hash || ''}`
-        window.location.replace(target)
+        // Preserva query (?code=...) e hash (#access_token=...) para ambos fluxos (PKCE/Implicit)
+        if (typeof window !== 'undefined') {
+          const { search, hash } = window.location
+          const target = `/auth/update-password${search || ''}${hash || ''}`
+          window.location.replace(target)
+        }
       }
     })
     return () => {
@@ -75,10 +77,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Fallback extra: apenas se NÃO estiver já em /auth/update-password
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const { hash, pathname } = window.location
-    if (hash.includes('type=recovery') && pathname !== '/auth/update-password') {
-      // Encaminha preservando o hash para que o supabase-js aplique a sessão
-      window.location.replace(`/auth/update-password${hash}`)
+    const { hash, search, pathname } = window.location
+    const qs = new URLSearchParams(search)
+    const hasRecoveryCode = !!(qs.get('code') || qs.get('token') || qs.get('token_hash'))
+    const hasRecoveryHash = /type=recovery|access_token=|refresh_token=/.test(hash)
+    if ((hasRecoveryCode || hasRecoveryHash) && pathname !== '/auth/update-password') {
+      // Preserva query e hash ao encamihar para a tela de atualização de senha
+      window.location.replace(`/auth/update-password${search || ''}${hash || ''}`)
     }
   }, [])
 

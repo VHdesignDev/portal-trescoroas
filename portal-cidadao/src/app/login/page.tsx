@@ -19,8 +19,10 @@ export default function LoginPage() {
     const supabase = getSupabaseBrowserClient()
     const { data: sub } = supabase.auth.onAuthStateChange((event: AuthChangeEvent) => {
       if (event === 'PASSWORD_RECOVERY') {
-        const hash = typeof window !== 'undefined' ? window.location.hash : ''
-        router.replace(`/auth/update-password${hash || ''}`)
+        if (typeof window !== 'undefined') {
+          const { search, hash } = window.location
+          router.replace(`/auth/update-password${search || ''}${hash || ''}`)
+        }
       }
     })
     return () => {
