@@ -74,6 +74,7 @@ export default function UpdatePasswordPage() {
       setIsReady(!!data.session)
     } catch (e) {
       try { console.warn('[auth/update-password] attemptRecoveryFromUrl error', e) } catch {}
+      setMessage('Não foi possível ativar a sessão com este link. Solicite um novo e-mail e tente novamente.')
     } finally {
       setAttempting(false)
     }
