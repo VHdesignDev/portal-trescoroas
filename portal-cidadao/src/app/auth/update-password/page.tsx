@@ -43,6 +43,7 @@ export default function UpdatePasswordPage() {
   })
   const attemptRecoveryFromUrl = async () => {
     if (typeof window === 'undefined') return
+    setMessage(null)
     setAttempting(true)
     try {
       const supabase = getSupabaseBrowserClient()
@@ -50,12 +51,28 @@ export default function UpdatePasswordPage() {
       const code = search.get('code')
       const token_hash = search.get('token_hash')
       const token = search.get('token')
+
+      let didTry = false
+      let hadError: string | null = null
+
       if (code) {
-        await supabase.auth.exchangeCodeForSession({ code })
+        didTry = true
+        const { error } = await supabase.auth.exchangeCodeForSession({ code } as any)
+        if (error) {
+          hadError = 'Este link de recuperação não é mais válido. Solicite um novo e-mail.'
+        }
       } else if (token_hash) {
-        await supabase.auth.verifyOtp({ type: 'recovery', token_hash })
+        didTry = true
+        const { error } = await supabase.auth.verifyOtp({ type: 'recovery', token_hash })
+        if (error) {
+          hadError = 'Link de recuperação inválido ou expirado. Solicite um novo e-mail.'
+        }
       } else if (token) {
-        await supabase.auth.verifyOtp({ type: 'recovery', token })
+        didTry = true
+        const { error } = await supabase.auth.verifyOtp({ type: 'recovery', token })
+        if (error) {
+          hadError = 'Link de recuperação inválido ou expirado. Solicite um novo e-mail.'
+        }
       }
 
       const hash = window.location.hash || ''
@@ -65,16 +82,27 @@ export default function UpdatePasswordPage() {
           const access_token = qs.get('access_token')
           const refresh_token = qs.get('refresh_token')
           if (access_token && refresh_token) {
-            await supabase.auth.setSession({ access_token, refresh_token })
+            didTry = true
+            const { error } = await supabase.auth.setSession({ access_token, refresh_token })
+            if (error) {
+              hadError = 'Não foi possível ativar a sessão a partir deste link. Solicite um novo e-mail.'
+            }
           }
         } catch {}
       }
 
       const { data }: { data: { session: Session | null } } = await supabase.auth.getSession()
-      setIsReady(!!data.session)
+      const ok = !!data.session
+      setIsReady(ok)
+      if (!ok) {
+        if (hadError) setMessage(hadError)
+        else if (code) setMessage('Este link de recuperação (formato PKCE) não é válido neste navegador. Solicite um novo e-mail.')
+        else if (didTry) setMessage('Não foi possível ativar a sessão com este link. Solicite um novo e-mail.')
+        else setMessage('Link inválido. Solicite um novo e-mail de recuperação.')
+      }
     } catch (e) {
       try { console.warn('[auth/update-password] attemptRecoveryFromUrl error', e) } catch {}
-      setMessage('Não foi possível ativar a sessão com este link. Solicite um novo e-mail e tente novamente.')
+      setMessage('Ocorreu um erro ao ativar sua sessão. Solicite um novo e-mail e tente novamente.')
     } finally {
       setAttempting(false)
     }
