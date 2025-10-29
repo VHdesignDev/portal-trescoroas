@@ -61,8 +61,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = getSupabaseBrowserClient()
     const { data: sub } = supabase.auth.onAuthStateChange((event: AuthChangeEvent) => {
       if (event === 'PASSWORD_RECOVERY') {
-        // Preserva query (?code=...) e hash (#access_token=...) para ambos fluxos (PKCE/Implicit)
-        if (typeof window !== 'undefined') {
+        // Evita redirecionar em loop se já estivermos na página
+        if (typeof window !== 'undefined' && window.location.pathname !== '/auth/update-password') {
           const { search, hash } = window.location
           const target = `/auth/update-password${search || ''}${hash || ''}`
           window.location.replace(target)
